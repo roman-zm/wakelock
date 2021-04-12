@@ -3,6 +3,8 @@
 
 static void * mKeyPathObserverContextApplicationIsIdleTimerDisabled = &mKeyPathObserverContextApplicationIsIdleTimerDisabled;
 
+static WakelockPlugin* instance;
+
 @interface WakelockPlugin () <FLTWakelockApi>
 
 @property (nonatomic, assign) BOOL enable;
@@ -11,10 +13,13 @@ static void * mKeyPathObserverContextApplicationIsIdleTimerDisabled = &mKeyPathO
 
 @implementation WakelockPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  WakelockPlugin* instance = [[WakelockPlugin alloc] init];
+  if (instance == NULL) {
+    instance = [[WakelockPlugin alloc] init];
+
+    [UIApplication.sharedApplication addObserver:instance forKeyPath:@"idleTimerDisabled" options:NSKeyValueObservingOptionNew context:mKeyPathObserverContextApplicationIsIdleTimerDisabled];
+  }
+
   FLTWakelockApiSetup(registrar.messenger, instance);
-    
-  [UIApplication.sharedApplication addObserver:instance forKeyPath:@"idleTimerDisabled" options:NSKeyValueObservingOptionNew context:mKeyPathObserverContextApplicationIsIdleTimerDisabled];
 }
 
 - (void)toggle:(FLTToggleMessage*)input error:(FlutterError**)error {
